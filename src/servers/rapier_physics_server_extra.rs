@@ -29,6 +29,7 @@ macro_rules! make_rapier_server_godot_impl {
         use $crate::bodies::rapier_collision_object::IRapierCollisionObject;
         use $crate::fluids::rapier_fluid::RapierFluid;
         use $crate::joints::rapier_joint::IRapierJoint;
+        use $crate::joints::rapier_joint::RapierJoint;
         use $crate::joints::rapier_joint_base::RapierJointType;
         use $crate::servers::RapierPhysicsServer;
         use $crate::servers::rapier_physics_server_extra::RapierBodyParam;
@@ -201,6 +202,62 @@ macro_rules! make_rapier_server_godot_impl {
                 if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
                     use rapier::dynamics::InverseKinematicsOption;
                     joint_obj.get_mut_base().custom_ik_options = InverseKinematicsOption::default();
+                }
+            }
+
+            #[cfg(feature = "dim2")]
+            #[func]
+            /// Set anchors for a pin joint
+            pub fn pin_joint_set_anchors(rid: Rid, anchor_a: Vector, anchor_b: Vector) {
+                let physics_data = physics_data();
+                let Some(joint) = physics_data.joints.get_mut(&rid) else {
+                    return;
+                };
+                match joint {
+                    RapierJoint::RapierRevoluteJoint(joint) => {
+                        // Get body handles from the joint
+                        let joint_handle = joint.get_base().get_handle();
+                        let space_handle = joint.get_base().get_space_id();
+                        let Some((body_handle_a, body_handle_b)) = physics_data
+                            .physics_engine
+                            .get_world(space_handle)
+                            .and_then(|world| world.get_joint_bodies(joint_handle))
+                        else {
+                            return;
+                        };
+                        // Find collision objects by body handle
+                        let mut body_a_opt = None;
+                        let mut body_b_opt = None;
+                        for (body_rid, body) in physics_data.collision_objects.iter() {
+                            if body.get_base().get_body_handle() == body_handle_a {
+                                body_a_opt = Some(body_rid);
+                            }
+                            if body.get_base().get_body_handle() == body_handle_b {
+                                body_b_opt = Some(body_rid);
+                            }
+                            if body_a_opt.is_some() && body_b_opt.is_some() {
+                                break;
+                            }
+                        }
+                        let (Some(body_a_rid), Some(body_b_rid)) = (body_a_opt, body_b_opt) else {
+                            return;
+                        };
+                        let Some(body_a) = physics_data.collision_objects.get(body_a_rid) else {
+                            return;
+                        };
+                        let Some(body_b) = physics_data.collision_objects.get(body_b_rid) else {
+                            return;
+                        };
+                        // Set both anchors
+                        joint.set_anchors(
+                            anchor_a,
+                            anchor_b,
+                            body_a,
+                            body_b,
+                            &mut physics_data.physics_engine,
+                        );
+                    }
+                    _ => {}
                 }
             }
 

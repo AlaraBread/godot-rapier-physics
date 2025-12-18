@@ -329,6 +329,53 @@ impl RapierRevoluteJoint {
             _ => false,
         }
     }
+
+    #[cfg(feature = "dim2")]
+    pub fn set_anchors(
+        &mut self,
+        anchor_a: Vector,
+        anchor_b: Vector,
+        body_a: &RapierCollisionObject,
+        body_b: &RapierCollisionObject,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        if !self.base.is_valid() {
+            return;
+        }
+        // Convert world positions to local positions without scale
+        let anchor_a_local = world_to_local_no_scale(&body_a.get_base().get_transform(), anchor_a);
+        let anchor_b_local = world_to_local_no_scale(&body_b.get_base().get_transform(), anchor_b);
+        let rapier_anchor_a = vector_to_rapier(anchor_a_local);
+        let rapier_anchor_b = vector_to_rapier(anchor_b_local);
+        physics_engine.joint_change_revolute_anchors(
+            self.base.get_space_id(),
+            self.base.get_handle(),
+            rapier_anchor_a,
+            rapier_anchor_b,
+        );
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn set_anchors(
+        &mut self,
+        anchor_a: Vector,
+        anchor_b: Vector,
+        _body_a: &RapierCollisionObject,
+        _body_b: &RapierCollisionObject,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        if !self.base.is_valid() {
+            return;
+        }
+        let rapier_anchor_a = vector_to_rapier(anchor_a);
+        let rapier_anchor_b = vector_to_rapier(anchor_b);
+        physics_engine.joint_change_revolute_anchors(
+            self.base.get_space_id(),
+            self.base.get_handle(),
+            rapier_anchor_a,
+            rapier_anchor_b,
+        );
+    }
 }
 impl IRapierJoint for RapierRevoluteJoint {
     fn get_base(&self) -> &RapierJointBase {

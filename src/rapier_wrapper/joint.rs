@@ -304,6 +304,24 @@ impl PhysicsEngine {
         }
     }
 
+    pub fn joint_change_revolute_anchors(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+        anchor_1: Vector<Real>,
+        anchor_2: Vector<Real>,
+    ) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(joint) = physics_world.get_mut_joint(joint_handle)
+            && let Some(joint) = joint.as_revolute_mut()
+        {
+            joint
+                .set_local_anchor1(Point { coords: anchor_1 })
+                .set_local_anchor2(Point { coords: anchor_2 });
+        }
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn joint_change_revolute_params(
         &mut self,
