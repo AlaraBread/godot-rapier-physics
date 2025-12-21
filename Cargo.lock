@@ -329,7 +329,7 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 [[package]]
 name = "godot"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#05c2b168948ffdc387670c5c01ef413c7b4a8df4"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -338,7 +338,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#05c2b168948ffdc387670c5c01ef413c7b4a8df4"
 dependencies = [
  "bindgen",
  "gdextension-api",
@@ -349,12 +349,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#05c2b168948ffdc387670c5c01ef413c7b4a8df4"
 
 [[package]]
 name = "godot-codegen"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#05c2b168948ffdc387670c5c01ef413c7b4a8df4"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -367,7 +367,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#05c2b168948ffdc387670c5c01ef413c7b4a8df4"
 dependencies = [
  "glam 0.30.9",
  "godot-bindings",
@@ -380,7 +380,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#05c2b168948ffdc387670c5c01ef413c7b4a8df4"
 dependencies = [
  "godot-bindings",
  "godot-codegen",
@@ -391,7 +391,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#05c2b168948ffdc387670c5c01ef413c7b4a8df4"
 dependencies = [
  "godot-bindings",
  "litrs",
@@ -508,9 +508,9 @@ dependencies = [
 
 [[package]]
 name = "itoa"
-version = "1.0.15"
+version = "1.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
+checksum = "7ee5b5339afb4c41626dde77b7a611bd4f2c202b897852b4bcf5d03eddc61010"
 
 [[package]]
 name = "libc"
@@ -897,7 +897,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#68a553e0839c86207ce1d26df4fbfa44e2f41791"
+source = "git+https://github.com/alarabread/rapier?branch=ughuuu-pin-joint-fix#a774bc90eff52d2605fbddc4ddfc894af1039a16"
 dependencies = [
  "approx",
  "arrayvec",
@@ -924,7 +924,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#68a553e0839c86207ce1d26df4fbfa44e2f41791"
+source = "git+https://github.com/alarabread/rapier?branch=ughuuu-pin-joint-fix#a774bc90eff52d2605fbddc4ddfc894af1039a16"
 dependencies = [
  "approx",
  "arrayvec",
@@ -949,7 +949,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#68a553e0839c86207ce1d26df4fbfa44e2f41791"
+source = "git+https://github.com/alarabread/rapier?branch=ughuuu-pin-joint-fix#a774bc90eff52d2605fbddc4ddfc894af1039a16"
 dependencies = [
  "approx",
  "arrayvec",
@@ -976,7 +976,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#68a553e0839c86207ce1d26df4fbfa44e2f41791"
+source = "git+https://github.com/alarabread/rapier?branch=ughuuu-pin-joint-fix#a774bc90eff52d2605fbddc4ddfc894af1039a16"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1091,9 +1091,9 @@ dependencies = [
 
 [[package]]
 name = "ryu"
-version = "1.0.20"
+version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
+checksum = "62049b2877bf12821e8f9ad256ee38fdc31db7387ec2d3b3f403024de2034aea"
 
 [[package]]
 name = "safe_arch"
