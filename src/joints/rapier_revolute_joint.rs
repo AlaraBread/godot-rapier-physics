@@ -354,28 +354,6 @@ impl RapierRevoluteJoint {
             rapier_anchor_b,
         );
     }
-
-    #[cfg(feature = "dim3")]
-    pub fn set_anchors(
-        &mut self,
-        anchor_a: Vector,
-        anchor_b: Vector,
-        _body_a: &RapierCollisionObject,
-        _body_b: &RapierCollisionObject,
-        physics_engine: &mut PhysicsEngine,
-    ) {
-        if !self.base.is_valid() {
-            return;
-        }
-        let rapier_anchor_a = vector_to_rapier(anchor_a);
-        let rapier_anchor_b = vector_to_rapier(anchor_b);
-        physics_engine.joint_change_revolute_anchors(
-            self.base.get_space_id(),
-            self.base.get_handle(),
-            rapier_anchor_a,
-            rapier_anchor_b,
-        );
-    }
 }
 impl IRapierJoint for RapierRevoluteJoint {
     fn get_base(&self) -> &RapierJointBase {

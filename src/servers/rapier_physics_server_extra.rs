@@ -29,6 +29,7 @@ macro_rules! make_rapier_server_godot_impl {
         use $crate::bodies::rapier_collision_object::IRapierCollisionObject;
         use $crate::fluids::rapier_fluid::RapierFluid;
         use $crate::joints::rapier_joint::IRapierJoint;
+        #[cfg(feature = "dim2")]
         use $crate::joints::rapier_joint::RapierJoint;
         use $crate::joints::rapier_joint_base::RapierJointType;
         use $crate::servers::RapierPhysicsServer;

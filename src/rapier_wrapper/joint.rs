@@ -304,6 +304,7 @@ impl PhysicsEngine {
         }
     }
 
+    #[cfg(feature = "dim2")]
     pub fn joint_change_revolute_anchors(
         &mut self,
         world_handle: WorldHandle,
