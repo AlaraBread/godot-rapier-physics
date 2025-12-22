@@ -1,5 +1,5 @@
 name: 🔗 Builds
-on: 
+on:
   workflow_dispatch:
   pull_request:
   push:
@@ -47,7 +47,7 @@ jobs:
     uses: ./.github/workflows/windows_builds.yml
 
   godot-build:
-    name:  Godot
+    name: Godot
     needs: [static-checks]
     uses: ./.github/workflows/godot_builds.yml
 
@@ -59,7 +59,16 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     name: Merge
-    needs: [android-build, ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
+    needs:
+      [
+        android-build,
+        ios-build,
+        linux-build,
+        macos-build,
+        windows-build,
+        godot-build,
+        web-build,
+      ]
     steps:
       # dynamic
       - uses: actions/upload-artifact/merge@v4
@@ -102,4 +111,3 @@ jobs:
       contents: write
     needs: [merge]
     uses: ./.github/workflows/release.yml
-    if: github.ref == 'refs/heads/main'

@@ -46,7 +46,7 @@ jobs:
           merge-multiple: true
           path: static-rapier-2d-single-enhanced-determinism
           name: static-rapier-2d-single-enhanced-determinism
-      - name: Download artifacts 2d parallel 
+      - name: Download artifacts 2d parallel
         uses: actions/download-artifact@v4
         with:
           pattern: static-rapier-2d-single-simd-parallel-*
