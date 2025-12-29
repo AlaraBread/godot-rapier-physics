@@ -125,6 +125,10 @@ pub struct RapierAreaState {
         )
     )]
     pub monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
+    // Mapping from old collider handles to new ones, used when shapes are recreated
+    // This is cleared after exit events are processed
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    pub handle_migration_map: HashMap<ColliderHandle, ColliderHandle>,
 }
 #[derive(Debug)]
 pub struct RapierArea {
@@ -327,10 +331,18 @@ impl RapierArea {
         other_collider_handle: ColliderHandle,
         entry_report: &EventReport,
     ) -> Option<i32> {
+        // If this is an exit event for an old handle that was migrated, look up the new handle
+        let mut lookup_handle = this_collider_handle;
+        if entry_report.state == -1 {
+            if let Some(&new_handle) = self.state.handle_migration_map.get(&this_collider_handle) {
+                // This is an exit event for an old handle that was migrated, use the new handle
+                lookup_handle = new_handle;
+            }
+        }
         let current_monitor = self
             .state
             .monitored_objects
-            .get_mut(&(other_collider_handle, this_collider_handle));
+            .get_mut(&(other_collider_handle, lookup_handle));
         let num_contacts: Option<i32>;
         match entry_report.state {
             // Exit event:
@@ -342,14 +354,12 @@ impl RapierArea {
                         // If we're no longer contacting any shapes from this area:
                         self.state
                             .monitored_objects
-                            .remove(&(other_collider_handle, this_collider_handle));
+                            .remove(&(other_collider_handle, lookup_handle));
                     }
                 } else {
                     // If we don't have a current monitor, then we don't want to send an exit event.
-                    // To my knowledge, this should never happen.
-                    godot_warn!(
-                        "Area has received an Exit Event for a collider with no recorded Entry Event."
-                    );
+                    // This can happen if the monitor was already removed or if this is an exit event
+                    // for an old handle that was already cleaned up.
                     return None;
                 }
             }

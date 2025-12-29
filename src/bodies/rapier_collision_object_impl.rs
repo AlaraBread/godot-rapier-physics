@@ -1,5 +1,6 @@
 use rapier::geometry::ColliderHandle;
 
+use super::rapier_area::MonitorInfo;
 use super::rapier_collision_object::IRapierCollisionObject;
 use super::rapier_collision_object_base::CollisionObjectShape;
 use super::rapier_collision_object_base::RapierCollisionObjectBase;
@@ -18,13 +19,14 @@ impl RapierCollisionObjectBase {
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
     ) {
+        use hashbrown::HashMap;
+        let mut handle_mapping: HashMap<ColliderHandle, ColliderHandle> = HashMap::new();
         for i in 0..collision_object.get_base().get_shape_count() as usize {
             if collision_object.get_base().state.shapes[i].disabled {
                 continue;
             }
-            if collision_object.get_base().state.shapes[i].collider_handle
-                != ColliderHandle::invalid()
-            {
+            let old_handle = collision_object.get_base().state.shapes[i].collider_handle;
+            if old_handle != ColliderHandle::invalid() {
                 collision_object.get_mut_base().state.shapes[i].collider_handle =
                     collision_object.get_base().destroy_shape(
                         collision_object.get_base().state.shapes[i],
@@ -34,16 +36,42 @@ impl RapierCollisionObjectBase {
                         physics_ids,
                     );
             }
-            collision_object.get_mut_base().state.shapes[i].collider_handle = collision_object
-                .create_shape(
-                    collision_object.get_base().state.shapes[i],
-                    i,
-                    physics_engine,
-                );
+            let new_handle = collision_object.create_shape(
+                collision_object.get_base().state.shapes[i],
+                i,
+                physics_engine,
+            );
+            if old_handle != ColliderHandle::invalid() {
+                handle_mapping.insert(old_handle, new_handle);
+            }
+            collision_object.get_mut_base().state.shapes[i].collider_handle = new_handle;
             collision_object.get_base().update_shape_transform(
                 &collision_object.get_base().state.shapes[i],
                 physics_engine,
             );
+        }
+        // Migrate monitored_objects for areas when handles change
+        if let Some(area) = collision_object.get_mut_area() {
+            let mut monitors_to_update: Vec<(
+                (ColliderHandle, ColliderHandle),
+                (ColliderHandle, ColliderHandle),
+                MonitorInfo,
+            )> = Vec::new();
+            for ((other_handle, this_handle), monitor_info) in &area.state.monitored_objects {
+                if let Some(&new_this_handle) = handle_mapping.get(this_handle) {
+                    // This monitor's this_collider_handle was recreated, need to migrate it
+                    monitors_to_update.push((
+                        (*other_handle, *this_handle),
+                        (*other_handle, new_this_handle),
+                        *monitor_info,
+                    ));
+                }
+            }
+            // Remove old entries and insert with new handles
+            for (old_key, new_key, monitor_info) in monitors_to_update {
+                area.state.monitored_objects.remove(&old_key);
+                area.state.monitored_objects.insert(new_key, monitor_info);
+            }
         }
     }
 
@@ -94,28 +122,59 @@ impl RapierCollisionObjectBase {
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
     ) {
+        use hashbrown::HashMap;
+        let mut handle_mapping: HashMap<ColliderHandle, ColliderHandle> = HashMap::new();
         for i in 0..collision_object.get_base().state.shapes.len() {
             let shape = collision_object.get_base().state.shapes[i];
             if shape.id != shape_id || shape.disabled {
                 continue;
             }
-            if collision_object.get_base().state.shapes[i].collider_handle
-                != ColliderHandle::invalid()
-            {
+            let old_handle = collision_object.get_base().state.shapes[i].collider_handle;
+            if old_handle != ColliderHandle::invalid() {
                 collision_object.get_mut_base().state.shapes[i].collider_handle = collision_object
                     .get_base()
                     .destroy_shape(shape, i, physics_spaces, physics_engine, physics_ids);
             }
-            collision_object.get_mut_base().state.shapes[i].collider_handle = collision_object
-                .create_shape(
-                    collision_object.get_base().state.shapes[i],
-                    i,
-                    physics_engine,
-                );
+            let new_handle = collision_object.create_shape(
+                collision_object.get_base().state.shapes[i],
+                i,
+                physics_engine,
+            );
+            if old_handle != ColliderHandle::invalid() {
+                handle_mapping.insert(old_handle, new_handle);
+            }
+            collision_object.get_mut_base().state.shapes[i].collider_handle = new_handle;
             collision_object.get_base().update_shape_transform(
                 &collision_object.get_base().state.shapes[i],
                 physics_engine,
             );
+        }
+        // Migrate monitored_objects for areas when handles change
+        if let Some(area) = collision_object.get_mut_area() {
+            // Store the handle mapping for later use in process_new_event
+            area.state
+                .handle_migration_map
+                .extend(handle_mapping.iter().map(|(k, v)| (*k, *v)));
+            let mut monitors_to_update: Vec<(
+                (ColliderHandle, ColliderHandle),
+                (ColliderHandle, ColliderHandle),
+                MonitorInfo,
+            )> = Vec::new();
+            for ((other_handle, this_handle), monitor_info) in &area.state.monitored_objects {
+                if let Some(&new_this_handle) = handle_mapping.get(this_handle) {
+                    // This monitor's this_collider_handle was recreated, need to migrate it
+                    monitors_to_update.push((
+                        (*other_handle, *this_handle),
+                        (*other_handle, new_this_handle),
+                        *monitor_info,
+                    ));
+                }
+            }
+            // Remove old entries and insert with new handles
+            for (old_key, new_key, monitor_info) in monitors_to_update {
+                area.state.monitored_objects.remove(&old_key);
+                area.state.monitored_objects.insert(new_key, monitor_info);
+            }
         }
         collision_object.shapes_changed(physics_engine, physics_spaces, physics_ids);
     }
@@ -170,6 +229,7 @@ impl RapierCollisionObjectBase {
         if p_index >= collision_object.get_base().state.shapes.len() {
             return;
         }
+        let old_handle = collision_object.get_base().state.shapes[p_index].collider_handle;
         collision_object.get_mut_base().state.shapes[p_index].collider_handle =
             collision_object.get_base().destroy_shape(
                 collision_object.get_base().state.shapes[p_index],
@@ -190,13 +250,43 @@ impl RapierCollisionObjectBase {
                 .get_mut_base()
                 .add_owner(collision_object.get_base().get_id());
         }
-        if !shape.disabled {
-            collision_object.get_mut_base().state.shapes[p_index].collider_handle =
-                collision_object.create_shape(shape, p_index, physics_engine);
+        let mut handle_mapping: hashbrown::HashMap<ColliderHandle, ColliderHandle> =
+            hashbrown::HashMap::new();
+        if !shape.disabled && old_handle != ColliderHandle::invalid() {
+            let new_handle = collision_object.create_shape(shape, p_index, physics_engine);
+            handle_mapping.insert(old_handle, new_handle);
+            collision_object.get_mut_base().state.shapes[p_index].collider_handle = new_handle;
             collision_object.get_base().update_shape_transform(
                 &collision_object.get_base().state.shapes[p_index],
                 physics_engine,
             );
+        }
+        // Migrate monitored_objects for areas when handles change
+        if let Some(area) = collision_object.get_mut_area() {
+            // Store the handle mapping for later use in process_new_event
+            area.state
+                .handle_migration_map
+                .extend(handle_mapping.iter().map(|(k, v)| (*k, *v)));
+            let mut monitors_to_update: Vec<(
+                (ColliderHandle, ColliderHandle),
+                (ColliderHandle, ColliderHandle),
+                MonitorInfo,
+            )> = Vec::new();
+            for ((other_handle, this_handle), monitor_info) in &area.state.monitored_objects {
+                if let Some(&new_this_handle) = handle_mapping.get(this_handle) {
+                    // This monitor's this_collider_handle was recreated, need to migrate it
+                    monitors_to_update.push((
+                        (*other_handle, *this_handle),
+                        (*other_handle, new_this_handle),
+                        *monitor_info,
+                    ));
+                }
+            }
+            // Remove old entries and insert with new handles
+            for (old_key, new_key, monitor_info) in monitors_to_update {
+                area.state.monitored_objects.remove(&old_key);
+                area.state.monitored_objects.insert(new_key, monitor_info);
+            }
         }
         if collision_object.get_base().is_space_valid() {
             collision_object.shapes_changed(physics_engine, physics_spaces, physics_ids);
